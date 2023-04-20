@@ -1,0 +1,12 @@
+version: "3.8"
+services:
+  db:
+    container_name: solid-start-db
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: docker
+      MYSQL_DATABASE: docker
+      MYSQL_USER: docker
+      MYSQL_PASSWORD: docker
+    ports:
+      - 2013:3306
