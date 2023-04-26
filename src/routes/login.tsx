@@ -1,15 +1,10 @@
-import { Show } from "solid-js";
+import { Show, createMemo } from "solid-js";
 import { useParams, useRouteData } from "solid-start";
 import { FormError } from "solid-start/data";
 import { createServerAction$, createServerData$, redirect } from "solid-start/server";
+import { Layout } from "~/components/layout";
 import { db } from "~/db";
 import { createUserSession, getUser, login, register } from "~/db/session";
-import { createForm, required, minLength } from "@modular-forms/solid";
-
-type LoginForm = {
-    username: string;
-    password: string;
-};
 
 function validateUsername(username: unknown) {
     if (typeof username !== "string" || username.length < 3) {
@@ -36,7 +31,7 @@ export default function Login() {
     const data = useRouteData<typeof routeData>();
     const params = useParams();
 
-    const [loggingIn, loggingInAction] = createServerAction$(async (form: FormData) => {
+    const [loggingIn, { Form }] = createServerAction$(async (form: FormData) => {
         const loginType = form.get("loginType");
         const username = form.get("username");
         const password = form.get("password");
@@ -90,46 +85,106 @@ export default function Login() {
         }
     });
 
-    const [loginForm, Login] = createForm<LoginForm>();
+    const fieldErrors = createMemo(() => {
+        const fieldErrors = loggingIn.error?.fieldErrors;
+        if (!fieldErrors) return null;
+        return {
+            username: fieldErrors.username,
+            password: fieldErrors.password,
+            message: loggingIn.error.message,
+        };
+    });
 
     return (
-        <main>
-            <h1>Login</h1>
-            <Login.Form
-                onSubmit={(values, submitEvent) => {
-                    loggingInAction({ values });
-                }}
-            >
-                <Login.Field
-                    validate={[
-                        required("Please enter a username."),
-                        minLength(3, "Your username must have 3 characters or more."),
-                    ]}
-                    name="username"
-                >
-                    {(field, props) => (
-                        <>
-                            <input {...props} type="username" required />
-                            {field.error && <div>{field.error}</div>}
-                        </>
-                    )}
-                </Login.Field>
-                <Login.Field
-                    validate={[
-                        required("Please enter a password."),
-                        minLength(3, "Your password must have 3 characters or more."),
-                    ]}
-                    name="password"
-                >
-                    {(field, props) => (
-                        <>
-                            <input {...props} type="password" required />
-                            {field.error && <div>{field.error}</div>}
-                        </>
-                    )}
-                </Login.Field>
-                <input type="submit" />
-            </Login.Form>
-        </main>
+        <Layout>
+            <div class="hero min-h-screen bg-base-200">
+                <div class="hero-content flex-col lg:flex-row-reverse">
+                    <div class="card flex-shrink-0 w-full max-w-sm shadow-2xl bg-base-100">
+                        <div class="card-body">
+                            <Form class="form-control">
+                                <input
+                                    type="hidden"
+                                    name="redirectTo"
+                                    value={params.redirectTo ?? "/"}
+                                />
+                                <div class="form-control">
+                                    <label class="label cursor-pointer">
+                                        <span class="label-text">Login</span>
+                                        <input
+                                            class="radio"
+                                            type="radio"
+                                            name="loginType"
+                                            value="login"
+                                            checked={true}
+                                        />
+                                    </label>
+                                </div>
+                                <div class="form-control">
+                                    <label class="label cursor-pointer">
+                                        <span class="label-text">Register</span>
+                                        <input
+                                            class="radio"
+                                            type="radio"
+                                            name="loginType"
+                                            value="register"
+                                        />
+                                    </label>
+                                </div>
+                                <div class="form-control">
+                                    <label class="label" for="username-input">
+                                        <span class="label-text">Username</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        class={`input input-bordered ${
+                                            fieldErrors()?.username ? "input-error" : ""
+                                        }`}
+                                        name="username"
+                                        placeholder="username"
+                                    />
+                                </div>
+                                <Show when={fieldErrors()?.username}>
+                                    <label class="label" role="alert">
+                                        <span class="label-text-alt">
+                                            {fieldErrors()?.username}
+                                        </span>
+                                    </label>
+                                </Show>
+                                <div class="form-control">
+                                    <label class="label" for="password-input">
+                                        <span class="label-text">Password</span>
+                                    </label>
+                                    <input
+                                        class={`input input-bordered ${
+                                            fieldErrors()?.password ? "input-error" : ""
+                                        }`}
+                                        name="password"
+                                        type="password"
+                                        placeholder="password"
+                                    />
+                                </div>
+                                <Show when={fieldErrors()?.password}>
+                                    <label class="label" role="alert">
+                                        <span class="label-text-alt">
+                                            {fieldErrors()?.password}
+                                        </span>
+                                    </label>
+                                </Show>
+                                <Show when={loggingIn.error}>
+                                    <label class="label" role="alert" id="error-message">
+                                        <span class="label-text-alt">{fieldErrors()?.message}</span>
+                                    </label>
+                                </Show>
+                                <div class="form-control mt-6">
+                                    <button class="btn" type="submit">
+                                        {data() ? "Login" : ""}
+                                    </button>
+                                </div>
+                            </Form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Layout>
     );
 }

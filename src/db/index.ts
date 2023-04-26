@@ -9,4 +9,4 @@ export const db =
         log: ["query", "info", "warn", "error"],
     });
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;
+if (import.meta.env.NODE_ENV !== "production") globalForPrisma.prisma = db;
