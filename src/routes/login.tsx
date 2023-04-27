@@ -97,7 +97,7 @@ export default function Login() {
 
     return (
         <Layout>
-            <div class="hero min-h-screen bg-base-200">
+            <div class="hero bg-base-200">
                 <div class="hero-content flex-col lg:flex-row-reverse">
                     <div class="card flex-shrink-0 w-full max-w-sm shadow-2xl bg-base-100">
                         <div class="card-body">
@@ -170,7 +170,7 @@ export default function Login() {
                                         </span>
                                     </label>
                                 </Show>
-                                <Show when={loggingIn.error}>
+                                <Show when={fieldErrors()?.message}>
                                     <label class="label" role="alert" id="error-message">
                                         <span class="label-text-alt">{fieldErrors()?.message}</span>
                                     </label>

@@ -2,6 +2,19 @@ import solid from "solid-start/vite";
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  plugins: [solid()],
-  ssr: { external: ["@prisma/client"] },
+    plugins: [
+        solid({
+            babel: {
+                plugins: [
+                    [
+                        "@locator/babel-jsx/dist",
+                        {
+                            env: "development",
+                        },
+                    ],
+                ],
+            },
+        }),
+    ],
+    ssr: { external: ["@prisma/client"] },
 });
