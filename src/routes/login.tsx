@@ -3,6 +3,7 @@ import { useParams, useRouteData } from "solid-start";
 import { FormError } from "solid-start/data";
 import { createServerAction$, createServerData$, redirect } from "solid-start/server";
 import { Layout } from "~/components/layout";
+import { LoginForm } from "~/components/login-form";
 import { db } from "~/db";
 import { createUserSession, getUser, login, register } from "~/db/session";
 
@@ -101,6 +102,7 @@ export default function Login() {
                 <div class="hero-content flex-col lg:flex-row-reverse">
                     <div class="card flex-shrink-0 w-full max-w-sm shadow-2xl bg-base-100">
                         <div class="card-body">
+                            <LoginForm />
                             <Form class="form-control">
                                 <input
                                     type="hidden"

@@ -1,53 +1,58 @@
-import { createForm } from "@felte/solid";
 import reporter from "@felte/reporter-tippy";
+import { createForm } from "@felte/solid";
 import { validator } from "@felte/validator-zod";
 import { createSignal } from "solid-js";
+import { z } from "zod";
 
-type LoginFormValues = {
-    email: string;
-    password: string;
-    isRegistering: boolean;
-};
+const loginFormSchema = z.object({
+    email: z.string().email().nonempty(),
+    password: z.string().nonempty(),
+    isRegistering: z.boolean(),
+});
+
+type LoginFormValues = z.infer<typeof loginFormSchema>;
 
 export const LoginForm = () => {
     const [submitted, setSubmitted] = createSignal<LoginFormValues>();
 
     const { form } = createForm<LoginFormValues>({
+        initialValues: {
+            email: "",
+            password: "",
+            isRegistering: false,
+        },
         onSubmit(values) {
             setSubmitted(values);
         },
-        validate(values) {
-            const errors: { email: string[]; password: string[] } = {
-                email: [],
-                password: [],
-            };
-            if (!values.email) errors.email.push("Must not be empty");
-            if (!/[a-zA-Z][^@]*@[a-zA-Z][^@.]*\.[a-z]{2,}/.test(values.email))
-                errors.email.push("Must be a valid email");
-            if (!values.password) errors.password.push("Must not be empty");
-            return errors;
+        debounced: {
+            validate: (values) => {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        if (values.email !== "exists@example.com") return resolve({});
+                        resolve({
+                            email: "Email taken",
+                        });
+                    }, 1000);
+                });
+            },
         },
-        extend: reporter(),
+        extend: [reporter(), validator({ schema: loginFormSchema })],
     });
 
     return (
-        <form use:form>
+        <form ref={form}>
+            <div id="publicEmail">Register?</div>
+            <input type="radio" id="isRegisteringYes" value="yes" name="isRegistering" checked />
+            <label for="isRegisteringYes">Yes</label>
+            <br />
+            <input type="radio" id="isRegisteringNo" value="no" name="isRegistering" />
+            <label for="isRegisteringNo">No</label>
             <fieldset>
                 <legend>Sign In</legend>
                 <label for="email">Email:</label>
                 <input type="email" name="email" id="email" />
-                <ValidationMessage for="email" as="ul" aria-live="polite">
-                    {(messages) => (
-                        <Index each={messages ?? []}>{(message) => <li>{message}</li>}</Index>
-                    )}
-                </ValidationMessage>
                 <label for="password">Password:</label>
                 <input type="password" name="password" id="password" />
-                <ValidationMessage for="password" as="ul" aria-live="polite">
-                    {(messages) => (
-                        <Index each={messages ?? []}>{(message) => <li>{message}</li>}</Index>
-                    )}
-                </ValidationMessage>
             </fieldset>
             <button type="submit">Submit</button>
             <button type="reset">Reset</button>
