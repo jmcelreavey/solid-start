@@ -11,6 +11,7 @@ import {
     Scripts,
     Title,
 } from "solid-start";
+import "tippy.js/dist/tippy.css";
 import "./root.css";
 
 export default function Root() {
