@@ -11,18 +11,31 @@ const loginFormSchema = z.object({
 
 export type LoginFormValues = z.infer<typeof loginFormSchema>;
 
-export function LoginForm(props: { onSubmit: (values: LoginFormValues) => Promise<Response> }) {
+type LoginFormResponse = {
+    errors?: { [key: string]: string | undefined };
+};
+
+export function LoginForm(props: {
+    onSubmit: (values: LoginFormValues) => Promise<LoginFormResponse>;
+}) {
     const { form, data, isValid } = createForm<LoginFormValues>({
         initialValues: {
             username: "",
             password: "",
             isRegistering: "no",
         },
-        async onSubmit(values) {
-            await props.onSubmit(values);
+        async onSubmit(values, context) {
+            const result = await props.onSubmit(values);
+
+            if (result.errors) {
+                context.setErrors(result.errors);
+                throw result;
+            }
+
+            return result;
         },
-        onError(errors) {
-            console.log(errors);
+        onSuccess(values) {
+            console.log(values);
         },
         extend: [
             reporter({
