@@ -1,7 +1,11 @@
+import { Pressable } from "@ark-ui/solid";
 import reporter from "@felte/reporter-tippy";
 import { createForm } from "@felte/solid";
 import { validator } from "@felte/validator-zod";
+import { isResponse } from "solid-start";
+import { createServerAction$ } from "solid-start/server";
 import { z } from "zod";
+import { createUserSession, dupeCheck, login, register } from "~/db/session";
 
 const loginFormSchema = z.object({
     username: z.string().nonempty("Username is required"),
@@ -9,15 +13,37 @@ const loginFormSchema = z.object({
     isRegistering: z.string().nonempty("Login type is required"),
 });
 
-export type LoginFormValues = z.infer<typeof loginFormSchema>;
+type LoginFormValues = z.infer<typeof loginFormSchema>;
 
-type LoginFormResponse = {
-    errors?: { [key: string]: string | undefined };
-};
+export function LoginForm() {
+    const [_loggingIn, logIn] = createServerAction$(async (values: LoginFormValues) => {
+        const { username, password, isRegistering } = values;
 
-export function LoginForm(props: {
-    onSubmit: (values: LoginFormValues) => Promise<LoginFormResponse>;
-}) {
+        if (isRegistering === "yes") {
+            const userExists = await dupeCheck({ username });
+            if (userExists) {
+                return {
+                    errors: {
+                        username: "Username already exists.",
+                    },
+                };
+            }
+            const user = await register({ username, password });
+            return createUserSession(`${user.id}`, "/");
+        } else {
+            const user = await login({ username, password });
+            if (!user) {
+                return {
+                    errors: {
+                        username: "Invalid username or password.",
+                        password: "Invalid username or password.",
+                    },
+                };
+            }
+            return createUserSession(`${user.id}`, "/");
+        }
+    });
+
     const { form, data, isValid } = createForm<LoginFormValues>({
         initialValues: {
             username: "",
@@ -25,17 +51,11 @@ export function LoginForm(props: {
             isRegistering: "no",
         },
         async onSubmit(values, context) {
-            const result = await props.onSubmit(values);
-
-            if (result.errors) {
-                context.setErrors(result.errors);
-                throw result;
+            const login = await logIn(values);
+            if (!isResponse(login) && login.errors) {
+                context.setErrors(login.errors);
+                throw login;
             }
-
-            return result;
-        },
-        onSuccess(values) {
-            console.log(values);
         },
         extend: [
             reporter({
@@ -114,9 +134,9 @@ export function LoginForm(props: {
                 </label>
             </div>
             <div class="form-control mt-6">
-                <button class="btn btn-primary" type="submit" disabled={!isValid()}>
+                <Pressable class="btn btn-primary" type="submit" disabled={!isValid()}>
                     {submitButtonText()}
-                </button>
+                </Pressable>
             </div>
         </form>
     );
