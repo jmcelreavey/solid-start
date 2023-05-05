@@ -7,8 +7,57 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id       String @id @default(uuid())
-  username String @unique
-  password String
+model TokenEconomy {
+  id        String   @id @default(uuid())
+  memberId  String
+  name      String
+  tokens    Int?     @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Member Member   @relation(fields: [memberId], references: [id])
+  Reward Reward[]
+}
+
+model Member {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  TokenEconomy  TokenEconomy[]
+  RewardHistory RewardHistory[]
+}
+
+model Reward {
+  id             String   @id @default(uuid())
+  tokenEconomyId String
+  name           String
+  tokens         Int
+  limit          Int?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  TokenEconomy  TokenEconomy    @relation(fields: [tokenEconomyId], references: [id])
+  RewardHistory RewardHistory[]
+}
+
+model RewardHistory {
+  id        String   @id @default(uuid())
+  rewardId  String
+  memberId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Reward Reward @relation(fields: [rewardId], references: [id])
+  Member Member @relation(fields: [memberId], references: [id])
+}
+
+model Contact {
+  id        String   @id @default(uuid())
+  name      String
+  message   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

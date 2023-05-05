@@ -1,5 +1,5 @@
 // export const errors = () => {
-//     function existingUser(item) {
+//     function existingMember(item) {
 //         return item && typeof item === "object" && !Array.isArray(item);
 //     }
 

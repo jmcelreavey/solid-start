@@ -3,29 +3,35 @@
     "scripts": {
         "dev": "solid-start dev",
         "build": "solid-start build",
-        "start": "solid-start start"
+        "start": "solid-start start",
+        "prisma:studio": "prisma studio --schema=./prisma/schema.prisma",
+        "prisma:migrate": "prisma migrate dev --name init --schema=./prisma/schema.prisma",
+        "prisma:generate": "prisma generate --schema=./prisma/schema.prisma",
+        "prisma:db-seed": "tsx prisma/seed.ts",
+        "prisma:db-reset": "prisma db push --force-reset "
     },
     "type": "module",
     "devDependencies": {
         "@tailwindcss/typography": "^0.5.9",
+        "@types/node": "^18.16.3",
         "autoprefixer": "^10.4.14",
         "postcss": "^8.4.23",
         "solid-start-node": "^0.2.26",
         "tailwindcss": "^3.3.2",
+        "tsx": "^3.12.7",
         "typescript": "^5.0.4",
         "vite": "^4.3.3"
     },
     "dependencies": {
-        "@ark-ui/solid": "^0.2.0",
         "@felte/reporter-solid": "^1.2.5",
         "@felte/reporter-tippy": "^1.1.5",
         "@felte/solid": "^1.2.7",
         "@felte/validator-zod": "^1.0.13",
+        "@kobalte/core": "^0.9.4",
         "@prisma/client": "^4.13.0",
         "@solidjs/meta": "^0.28.4",
         "@solidjs/router": "^0.8.2",
         "daisyui": "^2.51.6",
-        "phosphor-solid": "^1.1.5",
         "prisma": "^4.13.0",
         "solid-js": "^1.7.3",
         "solid-start": "^0.2.26",
@@ -36,5 +42,8 @@
     },
     "engines": {
         "node": ">=18"
+    },
+    "prisma": {
+        "seed": "tsx prisma/seed.ts"
     }
 }

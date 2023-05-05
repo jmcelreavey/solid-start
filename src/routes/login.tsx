@@ -2,11 +2,11 @@ import { createServerData$, redirect } from "solid-start/server";
 import { LoginForm } from "~/components/forms/login-form";
 import { Layout } from "~/components/layout";
 import { db } from "~/db";
-import { getUser } from "~/db/session";
+import { getMember } from "~/db/session";
 
 export function routeData() {
     return createServerData$(async (_, { request }) => {
-        if (await getUser(db, request)) {
+        if (await getMember(db, request)) {
             throw redirect("/");
         }
         return {};

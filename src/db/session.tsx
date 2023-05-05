@@ -3,27 +3,27 @@ import { redirect } from "solid-start/server";
 import { createCookieSessionStorage } from "solid-start/session";
 import { db } from ".";
 type LoginForm = {
-    username: string;
+    email: string;
     password: string;
 };
 
-export async function register({ username, password }: LoginForm) {
-    return db.user.create({
-        data: { username: username, password },
+export async function register({ email, password }: LoginForm) {
+    return db.member.create({
+        data: { email, password },
     });
 }
 
-export async function login({ username, password }: LoginForm) {
-    const user = await db.user.findUnique({ where: { username } });
-    if (!user) return null;
-    const isCorrectPassword = password === user.password;
+export async function login({ email, password }: LoginForm) {
+    const member = await db.member.findUnique({ where: { email } });
+    if (!member) return null;
+    const isCorrectPassword = password === member.password;
     if (!isCorrectPassword) return null;
-    return user;
+    return member;
 }
 
-export async function dupeCheck({ username = "" }) {
-    const user = await db.user.findUnique({ where: { username } });
-    return Boolean(user);
+export async function dupeCheck({ email = "" }) {
+    const member = await db.member.findUnique({ where: { email } });
+    return Boolean(member);
 }
 
 const sessionSecret = import.meta.env.SESSION_SECRET;
@@ -42,39 +42,39 @@ const storage = createCookieSessionStorage({
     },
 });
 
-export function getUserSession(request: Request) {
+export function getMemberSession(request: Request) {
     return storage.getSession(request.headers.get("Cookie"));
 }
 
-export async function getUserId(request: Request) {
-    const session = await getUserSession(request);
-    const userId = session.get("userId");
-    if (!userId || typeof userId !== "string") return null;
-    return userId;
+export async function getMemberId(request: Request) {
+    const session = await getMemberSession(request);
+    const memberId = session.get("memberId");
+    if (!memberId || typeof memberId !== "string") return null;
+    return memberId;
 }
 
-export async function requireUserId(
+export async function requireEmailId(
     request: Request,
     redirectTo: string = new URL(request.url).pathname
 ) {
-    const session = await getUserSession(request);
-    const userId = session.get("userId");
-    if (!userId || typeof userId !== "string") {
+    const session = await getMemberSession(request);
+    const memberId = session.get("memberId");
+    if (!memberId || typeof memberId !== "string") {
         const searchParams = new URLSearchParams([["redirectTo", redirectTo]]);
         throw redirect(`/login?${searchParams}`);
     }
-    return userId;
+    return memberId;
 }
 
-export async function getUser(db: PrismaClient, request: Request) {
-    const userId = await getUserId(request);
-    if (typeof userId !== "string") {
+export async function getMember(db: PrismaClient, request: Request) {
+    const memberId = await getMemberId(request);
+    if (typeof memberId !== "string") {
         return null;
     }
 
     try {
-        const user = await db.user.findUnique({ where: { id: userId } });
-        return user;
+        const member = await db.member.findUnique({ where: { id: memberId } });
+        return member;
     } catch {
         throw logout(request);
     }
@@ -89,9 +89,9 @@ export async function logout(request: Request) {
     });
 }
 
-export async function createUserSession(userId: string, redirectTo: string) {
+export async function createMemberSession(memberId: string, redirectTo: string) {
     const session = await storage.getSession();
-    session.set("userId", userId);
+    session.set("memberId", memberId);
     return redirect(redirectTo, {
         headers: {
             "Set-Cookie": await storage.commitSession(session),
